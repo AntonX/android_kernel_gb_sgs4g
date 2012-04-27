@@ -7,22 +7,44 @@
 
 # Use "$./build.sh -clean" to kill old .o
 
-# change to your initramfs
+# you can modify these to your locations of tooolchain and initramfs
 
-INITRAMFS="/home/anton/SGS4G/initramfs"
+DEFAULT_CROSS_COMPILE=/home/anton/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
 
-# change to your toolchain
+DEFAULT_INITRAMFS=/home/anton/SGS4G/initramfsGB
 
-CROSS_COMPILE=/home/anton/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
+# check the toolchain
 
-#
+if [ ! -e ${CROSS_COMPILE}gcc ] ; then # export variable is not set; try our own
+  CROSS_COMPILE=$DEFAULT_CROSS_COMPILE
+fi
+
+if [ ! -e ${CROSS_COMPILE}gcc ] ; then
+  echo "!!! Toolchain not found. Use:"
+  echo "!!!   \$git clone https://android.googlesource.com/platform/prebuilt"
+  echo "!!!   \$export CROSS_COMPILE=\"Your_Toolchain_Location\""
+  exit 0
+fi
+
+# check initramfs
+
+if [ ! -e ${INITRAMFS}/init_samsung ] ; then
+  INITRAMFS=$DEFAULT_INITRAMFS
+fi
+
+if [ ! -e ${INITRAMFS}/init_samsung ] ; then
+  echo "!!! initramfs not found. Make sure you have the directory and use command to set:"
+  echo "!!!   \$export INITRAMFS=\"Your_initramfs_Location\""
+  exit 0
+fi
+
+# 
 
 CPU_NUMBER=`grep 'processor' /proc/cpuinfo | wc -l`
 
-#
+TMP_INITRAMFS=/tmp/sgs4g_initramfs
 
 BUILD_DIR="./"
-
 
 ##############################################################################
 
@@ -35,8 +57,11 @@ fi
 
 if [ "$1" == "-clean" ] ; then
   echo Cleaning project...
-  rm $(find $BUILD_DIR -name '*.ko')
-  rm $(find $BUILD_DIR -name '*.o')
+  rm $(find $BUILD_DIR -name '*.ko') > /dev/null 2>&1
+  rm $(find $BUILD_DIR -name '*.o') > /dev/null 2>&1
+  rm $(find $BUILD_DIR -name '*.bak') > /dev/null 2>&1
+  rm $(find $BUILD_DIR -name '*.old') > /dev/null 2>&1
+  rm $(find $BUILD_DIR -name '*.tmp') > /dev/null 2>&1
   exit 0
 fi
 
@@ -49,18 +74,15 @@ fi
 
 #
 
-
-TMP_INITRAMFS="/tmp/sgs4g_initramfs"
-
-if [ ! -e $TMP_INITRAMFS ] ; then
-  mkdir $TMP_INITRAMFS > /dev/null 2>&1
+if [ ! -e ${TMP_INITRAMFS} ] ; then
+  mkdir ${TMP_INITRAMFS} > /dev/null 2>&1
 fi
 
 # some cleanup
 
 if [ $COMPILEONLY == 0 ] ; then
   echo Cleaning previous build...
-  rm $(find $BUILD_DIR -name '*.ko')
+  rm $(find $BUILD_DIR -name '*.ko') > /dev/null 2>&1
 fi
 
 # run the build
@@ -77,16 +99,16 @@ if [ $COMPILEONLY == 0 ] ; then
 
   echo Preparing initramfs...
 
-  rm -rf "$TMP_INITRAMFS"
-  cp -rf "$INITRAMFS" "$TMP_INITRAMFS"
-  find "$TMP_INITRAMFS" -name '\.git' -o -name '\.gitignore' -o -name 'EMPTY_DIRECTORY' | xargs rm -rf
+  rm -rf ${TMP_INITRAMFS} > /dev/null 2>&1
+  cp -rf ${INITRAMFS} ${TMP_INITRAMFS}
+  find ${TMP_INITRAMFS} -name '\.git' -o -name '\.gitignore' -o -name 'EMPTY_DIRECTORY' | xargs rm -rf
 
   echo Populating initramfs with updated kernel objects...
 
-  cp $(find $BUILD_DIR -name '*.ko') $TMP_INITRAMFS/lib/modules/
-  cp $(find $BUILD_DIR -name '*.ko') $INITRAMFS/lib/modules/
+  cp $(find $BUILD_DIR -name '*.ko') ${TMP_INITRAMFS}/lib/modules/
+  cp $(find $BUILD_DIR -name '*.ko') ${INITRAMFS}/lib/modules/
 
-  rm -rf $BUILD_DIR/usr/{built-in.o,initramfs_data.{o,cpio*}}
+  rm -rf $BUILD_DIR/usr/{built-in.o,initramfs_data.{o,cpio*}} > /dev/null 2>&1
   rm $BUILD_DIR/arch/arm/boot/Image > /dev/null 2>&1
   rm $BUILD_DIR/arch/arm/boot/zImage > /dev/null 2>&1
 
