@@ -25,7 +25,7 @@ obj-$(CONFIG_MACH_SMDKV210)	+= mach-smdkv210.o
 obj-$(CONFIG_MACH_SMDKC110)	+= mach-smdkc110.o
 obj-$(CONFIG_MACH_GONI)		+= mach-goni.o
 obj-$(CONFIG_MACH_HERRING)	+= mach-herring.o herring-rfkill.o
-obj-$(CONFIG_MACH_HERRING)	+= herring-vibrator.o
+#obj-$(CONFIG_MACH_HERRING)	+= herring-vibrator.o
 obj-$(CONFIG_MACH_HERRING)	+= herring-btlpm.o
 obj-$(CONFIG_MACH_HERRING)	+= herring-watchdog.o
 obj-$(CONFIG_MACH_HERRING)	+= herring-panel.o
@@ -37,7 +37,7 @@ obj-$(CONFIG_MACH_ARIES)	+= mach-aries.o dempsey-rfkill.o
 else
 obj-$(CONFIG_MACH_ARIES)	+= mach-aries.o aries-rfkill.o
 endif
-#obj-$(CONFIG_MACH_ARIES)	+= aries-vibrator.o
+obj-$(CONFIG_MACH_ARIES)	+= aries-vibrator.o
 #obj-$(CONFIG_MACH_ARIES)	+= aries-btlpm.o
 obj-$(CONFIG_MACH_ARIES)	+= aries-watchdog.o
 obj-$(CONFIG_MACH_ARIES)	+= aries-panel.o
