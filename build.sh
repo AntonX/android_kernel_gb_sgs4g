@@ -22,7 +22,7 @@ fi
 if [ ! -e ${CROSS_COMPILE}gcc ] ; then
   echo "!!! Toolchain not found. Use:"
   echo "!!!   \$git clone https://android.googlesource.com/platform/prebuilt"
-  echo "!!!   \$export CROSS_COMPILE=\"Your_Toolchain_Location\""
+  echo "!!!   \$export CROSS_COMPILE=\"Your_Toolchain_Location/bin/arm-eabi-\""
   exit 0
 fi
 
