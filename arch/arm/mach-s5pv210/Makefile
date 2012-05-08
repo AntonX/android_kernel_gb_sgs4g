@@ -51,7 +51,13 @@ obj-$(CONFIG_CPU_S5PV210)		+= cpu-freq_c110b.o
 obj-$(CONFIG_CPU_S5PV210_B)		+= cpu-freq_c110b.o
 endif
 else
+
+ifeq ($(CONFIG_CPUFREQ_OC_UV), y)
 obj-$(CONFIG_CPU_FREQ)		+= cpu-freq.o
+else
+obj-$(CONFIG_CPU_FREQ)		+= cpu-freq-no-ocuv.o
+endif
+
 endif
 
 obj-$(CONFIG_S5PV210_SETUP_SDHCI)       += setup-sdhci.o

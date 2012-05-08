@@ -55,6 +55,14 @@ if [ "$1" == "-config" ] ; then
   exit 0
 fi
 
+if [ "$1" == "-config2" ] ; then
+  KCONFIG=vibrantplus_antsvx_noocuv_defconfig
+  echo Creating $KCONFIG config...
+  make $KCONFIG
+  exit 0
+fi
+
+
 if [ "$1" == "-clean" ] ; then
   echo Cleaning project...
   rm $(find $BUILD_DIR -name '*.ko') > /dev/null 2>&1
@@ -66,10 +74,17 @@ if [ "$1" == "-clean" ] ; then
 fi
 
 COMPILEONLY=0
+PACKONLY=0
 
 if [ "$1" == "-co" ] ; then # compile only
   echo Compilinig only, no initramfs.
   COMPILEONLY=1
+fi
+
+if [ "$1" == "-pack" ] ; then # compile only
+  echo Packing zImage with initramfs.
+  PACKONLY=1
+  COMPILEONLY=0
 fi
 
 #
@@ -80,16 +95,20 @@ fi
 
 # some cleanup
 
-if [ $COMPILEONLY == 0 ] ; then
+if [ $COMPILEONLY == 0 ] && [ $PACKONLY == 0 ] ; then
   echo Cleaning previous build...
   rm $(find $BUILD_DIR -name '*.ko') > /dev/null 2>&1
 fi
+
+if [ $PACKONLY == 0 ] ; then
 
 # run the build
 
 echo Building...
 
 make -j$CPU_NUMBER CROSS_COMPILE=$CROSS_COMPILE
+
+fi
 
 #
 
@@ -103,10 +122,14 @@ if [ $COMPILEONLY == 0 ] ; then
   cp -rf ${INITRAMFS} ${TMP_INITRAMFS}
   find ${TMP_INITRAMFS} -name '\.git' -o -name '\.gitignore' -o -name 'EMPTY_DIRECTORY' | xargs rm -rf
 
-  echo Populating initramfs with updated kernel objects...
+  if [ $PACKONLY == 0 ] ; then
 
-  cp $(find $BUILD_DIR -name '*.ko') ${TMP_INITRAMFS}/lib/modules/
-  cp $(find $BUILD_DIR -name '*.ko') ${INITRAMFS}/lib/modules/
+    echo Populating initramfs with updated kernel objects...
+
+    cp $(find $BUILD_DIR -name '*.ko') ${TMP_INITRAMFS}/lib/modules/
+    cp $(find $BUILD_DIR -name '*.ko') ${INITRAMFS}/lib/modules/
+
+  fi
 
   rm -rf $BUILD_DIR/usr/{built-in.o,initramfs_data.{o,cpio*}} > /dev/null 2>&1
   rm $BUILD_DIR/arch/arm/boot/Image > /dev/null 2>&1

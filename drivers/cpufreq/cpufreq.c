@@ -32,12 +32,15 @@
 #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, \
 						"cpufreq-core", msg)
 
+#ifdef CONFIG_CPUFREQ_OC_UV
 
 #define UV_SIZE 11
 
 int exp_UV_mV[UV_SIZE] = { 0 };
 extern unsigned int freq_uv_table[UV_SIZE][3];
 int enabled_freqs[UV_SIZE] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+#endif
 
 /**
  * The "cpufreq driver" - the arch- or hardware-dependent low
@@ -654,6 +657,23 @@ static ssize_t show_scaling_setspeed(struct cpufreq_policy *policy, char *buf)
 	return policy->governor->show_setspeed(policy, buf);
 }
 
+/**
+ * show_scaling_driver - show the current cpufreq HW/BIOS limitation
+ */
+static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
+{
+	unsigned int limit;
+	int ret;
+	if (cpufreq_driver->bios_limit) {
+		ret = cpufreq_driver->bios_limit(policy->cpu, &limit);
+		if (!ret)
+			return sprintf(buf, "%u\n", limit);
+	}
+	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
+}
+
+#ifdef CONFIG_CPUFREQ_OC_UV
+
 // sysfs interface for Xan's UV application
 
 static ssize_t show_UV_mV_table(struct cpufreq_policy *policy, char *buf) {
@@ -695,20 +715,6 @@ static ssize_t show_frequency_voltage_table(struct cpufreq_policy *policy,
 	freq_uv_table[10][0], freq_uv_table[10][1], freq_uv_table[10][2]);
 }
 
-/**
- * show_scaling_driver - show the current cpufreq HW/BIOS limitation
- */
-static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
-{
-	unsigned int limit;
-	int ret;
-	if (cpufreq_driver->bios_limit) {
-		ret = cpufreq_driver->bios_limit(policy->cpu, &limit);
-		if (!ret)
-			return sprintf(buf, "%u\n", limit);
-	}
-	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
-}
 static ssize_t show_states_enabled_table(struct cpufreq_policy *policy, char *buf) {
 	return sprintf(buf, "%d %d %d %d %d %d %d %d %d %d %d", 
 			enabled_freqs[0], enabled_freqs[1], enabled_freqs[2], enabled_freqs[3], enabled_freqs[4], enabled_freqs[5], 
@@ -729,6 +735,8 @@ static ssize_t store_states_enabled_table(struct cpufreq_policy *policy, const c
 		return count;
 }
 
+#endif
+
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -739,13 +747,15 @@ cpufreq_freq_attr_ro(scaling_cur_freq);
 cpufreq_freq_attr_ro(bios_limit);
 cpufreq_freq_attr_ro(related_cpus);
 cpufreq_freq_attr_ro(affected_cpus);
-cpufreq_freq_attr_ro(frequency_voltage_table);
 cpufreq_freq_attr_rw(scaling_min_freq);
 cpufreq_freq_attr_rw(scaling_max_freq);
 cpufreq_freq_attr_rw(scaling_governor);
 cpufreq_freq_attr_rw(scaling_setspeed);
+#ifdef CONFIG_CPUFREQ_OC_UV
+cpufreq_freq_attr_ro(frequency_voltage_table);
 cpufreq_freq_attr_rw(UV_mV_table);
 cpufreq_freq_attr_rw(states_enabled_table);
+#endif
 
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
@@ -759,9 +769,11 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
+#ifdef CONFIG_CPUFREQ_OC_UV	
 	&UV_mV_table.attr,
 	&frequency_voltage_table.attr,
 	&states_enabled_table.attr,
+#endif
 	NULL
 };
 
@@ -1696,6 +1708,8 @@ static int __cpufreq_governor(struct cpufreq_policy *policy,
 	return ret;
 }
 
+#ifdef CONFIG_CPUFREQ_OC_UV
+
 static void set_governor_smooth_oc_scaling( struct cpufreq_governor * governor )
 {
 	if ( ! strnicmp( governor->name, "ondemand", CPUFREQ_NAME_LEN )
@@ -1711,6 +1725,8 @@ static void set_governor_smooth_oc_scaling( struct cpufreq_governor * governor )
 		governor->enable_smooth_oc_scaling = 0;
 }
 
+#endif
+
 int cpufreq_register_governor(struct cpufreq_governor *governor)
 {
 	int err;
@@ -1724,7 +1740,9 @@ int cpufreq_register_governor(struct cpufreq_governor *governor)
 	if (__find_governor(governor->name) == NULL) {
 		err = 0;
 
+#ifdef CONFIG_CPUFREQ_OC_UV
 		set_governor_smooth_oc_scaling( governor );
+#endif
 
 		list_add(&governor->governor_list, &cpufreq_governor_list);
 	}
