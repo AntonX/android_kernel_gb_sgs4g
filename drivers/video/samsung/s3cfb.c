@@ -49,7 +49,8 @@
 #if defined(CONFIG_VIBRANTPLUSTELUS_BOOT_LOGO)
 #include "logo_rgb24_wvga_portrait_VibrantPlusTelus.h"
 #else
-#include "logo_rgb24_wvga_portrait_VibrantPlus.h"
+#include "logo_rgb24_wvga_portrait_custom.h"
+//#include "logo_rgb24_wvga_portrait_VibrantPlus.h"
 #endif
 #elif defined(CONFIG_S5PC110_DEMPSEY_BOARD)
 #include "logo_rgb24_wvga_portrait_I997.h"
