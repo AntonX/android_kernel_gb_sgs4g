@@ -39,6 +39,8 @@
 #ifdef CONFIG_KERNEL_DEBUG_SEC
 #include <linux/kernel_sec_common.h>
 struct pt_regs kernel_sec_core_ureg_dump;
+#else
+#include <mach/regs-clock.h>
 #endif
 
 static const char *processor_modes[] = {

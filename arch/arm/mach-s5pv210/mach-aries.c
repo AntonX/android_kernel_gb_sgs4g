@@ -7026,18 +7026,23 @@ static void aries_power_off(void)
 			if (reboot_mode == REBOOT_MODE_ARM11_FOTA)
 				mode = REBOOT_MODE_ARM11_FOTA;
 			else
-			mode = REBOOT_MODE_CHARGING;
+				mode = REBOOT_MODE_CHARGING;
 
 			if (sec_set_param_value)
 				sec_set_param_value(__REBOOT_MODE, &mode);
+#ifdef CONFIG_KERNEL_DEBUG_SEC
 			kernel_sec_clear_upload_magic_number();
 			kernel_sec_hw_reset(1);
+#endif
 			arch_reset('r', NULL);
 			pr_crit("%s: waiting for reset!\n", __func__);
 			while (1);
 		}
 
+#ifdef CONFIG_KERNEL_DEBUG_SEC
 		kernel_sec_clear_upload_magic_number();
+#endif
+
 
 #if defined(CONFIG_S5PC110_HAWK_BOARD)
 		touch_led_on(false); // Turn off KEY LED.

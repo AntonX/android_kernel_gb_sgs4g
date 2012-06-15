@@ -408,7 +408,7 @@ CONFIG_PL330=y
 #
 # Samsung Kernel Debug Features
 #
-CONFIG_KERNEL_DEBUG_SEC=y
+# CONFIG_KERNEL_DEBUG_SEC is not set
 
 #
 # Kernel Features
